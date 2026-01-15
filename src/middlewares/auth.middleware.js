@@ -4,9 +4,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 
 export const verfifyJWT = asyncHandler(async (req, _, next) => {
-  console.log("token");
-  console.log(process.env.ACCESS_TOKEN_SECRET);
-
   try {
     const token =
       req.cookies?.accessToken ||

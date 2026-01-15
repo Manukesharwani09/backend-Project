@@ -354,7 +354,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Channel not found");
   }
   //channel found
-  console.log("CHANNEL:", channel);
+  // console.log("CHANNEL:", channel);
   return res
     .status(200)
     .json(
@@ -411,6 +411,8 @@ const getWatchHistory = asyncHandler(async (req, res) => {
       },
     },
   ]);
+
+  //console.log("USER WATCH HISTORY:", user[0].watchHistory);
 
   return res
     .status(200)
