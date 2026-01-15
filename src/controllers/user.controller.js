@@ -11,11 +11,7 @@ const registerUser = asyncHandler(
 
     const { fullName, email, password, username } = req.body;
 
-    if (
-      [fullName, email, password, username].some(
-        (field) => field?.trim() === ""
-      )
-    ) {
+    if (!fullName || !email || !password || !username) {
       throw new ApiError(400, "All fields are required");
     }
 
@@ -30,29 +26,29 @@ const registerUser = asyncHandler(
       );
     }
 
-    const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    const avatarLocalPath = req.files?.avatar?.[0]?.path;
+    const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
 
     if (!avatarLocalPath) {
       throw new ApiError(400, "Avatar image is required");
     }
 
     const avatar = await uploadOnCloudinary(avatarLocalPath, "avatars");
-    let coverImage;
-    if (coverImageLocalPath) {
-      coverImage = await uploadOnCloudinary(coverImageLocalPath, "coverImages");
-    }
+    const coverImage = await uploadOnCloudinary(
+      coverImageLocalPath,
+      "coverImages"
+    );
 
     if (!avatar) {
-      throw new ApiError(400, "Avatar field required");
+      throw new ApiError(400, "Avatar upload failed");
     }
     const user = await User.create({
       fullName,
       email,
       password,
       username: username.toLowerCase(),
-      avatar: avatar.url,
-      coverImage: coverImage?.url || "",
+      avatar: avatar,
+      coverImage: coverImage || "",
     });
 
     const createdUser = await User.findById(user._id).select(
