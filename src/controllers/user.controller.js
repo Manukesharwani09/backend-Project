@@ -2,7 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-
+import jwt from "jsonwebtoken";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const generateAccessandRefreshToken = async (userId) => {
@@ -155,37 +155,40 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
-    req.cookies?.refreshToken || req.body.refreshToken;
+    req.cookies.refreshToken || req.body.refreshToken;
+
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Refresh token missing");
   }
+
   try {
     const decodedToken = jwt.verify(
       incomingRefreshToken,
       process.env.REFRESH_TOKEN_SECRET
     );
-    const user = await User.findById(decodedToken?._id).select(
-      "-password -refreshToken"
-    );
+
+    const user = await User.findById(decodedToken?._id);
 
     if (!user) {
       throw new ApiError(401, "Unauthorized access, user not found");
     }
 
-    if (incomingRefreshToken !== user.refreshToken) {
+    if (incomingRefreshToken !== user?.refreshToken) {
       throw new ApiError(401, " refresh token expired or udes");
     }
 
-    const { accessToken, newRefreshToken } =
-      await generateAccessandRefreshToken(user._id);
     const options = {
       httpOnly: true,
       secure: true,
     };
+
+    const { accessToken, newRefreshToken } =
+      await generateAccessandRefreshToken(user._id);
+
     return res
       .status(200)
-      .cookie("refreshToken", newRefreshToken, options)
       .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", newRefreshToken, options)
       .json(
         new ApiResponse(200, true, "Access token refreshed successfully", {
           accessToken,
@@ -196,4 +199,5 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Unauthorized access, invalid refresh token");
   }
 });
+
 export { registerUser, loginUser, logoutUser, refreshAccessToken };
