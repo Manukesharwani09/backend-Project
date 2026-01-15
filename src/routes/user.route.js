@@ -5,6 +5,11 @@ import {
   logoutUser,
   registerUser,
   refreshAccessToken,
+  changeCurrentPassword,
+  getCurrentUser,
+  updateAccountDetails,
+  updateUserAvatar,
+  updateUserCoverImage,
 } from "../controllers/user.controller.js";
 import { verfifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -24,4 +29,19 @@ router.route("/login").post(loginUser);
 router.route("/logout").post(verfifyJWT, logoutUser);
 
 router.route("/refresh-token").post(refreshAccessToken);
+
+router.route("/change-password").post(verfifyJWT, changeCurrentPassword);
+
+router.route("/me").get(verfifyJWT, getCurrentUser);
+
+router.route("/update-account").put(verfifyJWT, updateAccountDetails);
+
+router
+  .route("/update-avatar")
+  .put(verfifyJWT, upload.single("avatar"), updateUserAvatar);
+
+router
+  .route("/update-cover-image")
+  .put(verfifyJWT, upload.single("coverImage"), updateUserCoverImage);
+
 export default router;
